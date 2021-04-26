@@ -7,7 +7,6 @@ const DEEPL_SEARCH_URL = 'https://dict.deepl.com/german-english/search';
 
 module.exports = word => 
   new Promise(async (resolve) => {
-    // Start browser in headless mode
     const browser = await puppeteer.launch();
     const url = DEEPL_DE_EN + word;
     const translations = [];
@@ -33,31 +32,29 @@ module.exports = word =>
           const $ = cheerio.load(translation);
   
           // Each translation line
-          $('div.lemma').each((i, el) => {
-            
+          $('div.lemma').each((i, el) => {          
             // Get input word & type
-            const inputWord = $(el).find('h2 span.tag_lemma a').text().trim()
-            const wordType = $(el).find('h2 span.tag_wordtype').text().trim()
+            const inputWord = $(el).find('h2 span.tag_lemma a').text().trim();
+            const wordType = $(el).find('h2 span.tag_wordtype').text().trim();
   
-            
             const output = {};
             output.source = inputWord;
             output.type = wordType;
             output.translations = [];
             
             // Translation lines
-            $(el).find('.lemma_content .translation_lines .translation.featured').each((j, translation) => {
+            $(el).find('.lemma_content .translation_lines .translation.featured').each((_, translation) => {
   
               const translationTitle = $(translation).find('h3.translation_desc span.tag_trans a').text().trim();
   
-              const line = {}
-              line.translation = translationTitle
-              line.examples = []
+              const line = {};
+              line.translation = translationTitle;
+              line.examples = [];
               
-              $(translation).find('div.example_lines div.line').each((l, example) => {
+              $(translation).find('div.example_lines div.line').each((_, example) => {
   
-                const exampleLineSource = $(example).find('span.tag_s').text().trim()
-                const exampleLineTarget = $(example).find('span.tag_t').text().trim()
+                const exampleLineSource = $(example).find('span.tag_s').text().trim();
+                const exampleLineTarget = $(example).find('span.tag_t').text().trim();
   
                 line.examples.push({
                   'source': exampleLineSource,
@@ -66,22 +63,20 @@ module.exports = word =>
   
               });
   
-              output.translations.push(line)
-  
+              output.translations.push(line);
             });
   
             translations.push(output);
-  
           });
           
           await browser.close();
           resolve(translations);
         } 
       });
-      // Go
+
       await page.goto(url);
     } catch(e) {
       await browser.close();
-      resolve([])
+      resolve([]);
     }
   });
